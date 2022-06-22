@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 def gaussian_noise(lmin, lmax, a, mean, sigma, n_samples = 100):
     
@@ -14,3 +15,18 @@ def gaussian_noise(lmin, lmax, a, mean, sigma, n_samples = 100):
     gauss_noise = gauss + 0.2*a*noise
 
     return x, gauss_noise
+
+
+lmin = 500
+lmax = 510
+a = 1
+mean = 505
+sigma = 1
+
+toy = gaussian_noise(lmin, lmax, a, mean, sigma)
+
+dict = {'wavelength': toy[0], 'flux': toy[1]}
+
+df = pd.DataFrame(dict)
+
+df.to_csv('toy.csv')
