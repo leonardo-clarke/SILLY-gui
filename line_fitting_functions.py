@@ -1,0 +1,105 @@
+import numpy as np
+from astropy.io import fits
+from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+
+def gaussian(x, *params):
+    """1D Gaussian profile for a spectral emission/absorption line.
+    
+    flux = The integrated flux of the spectral line.
+    sig = The width of the line in wavelength units.
+    mu = The wavelength of the line centroid.
+    C = The continuum level around the line. """
+
+    if len(params) == 1:
+        params = params[0]
+    flux, sig, mu, C = params
+
+    return flux * (1/np.sqrt(2*np.pi*sig**2)) * np.exp(-0.5 * ((x-mu)/sig)**2 )
+
+
+def create_wavelength_array(header):
+    """Creates a wavelength array for a spectrum (data) assuming that data is a 1D array."""
+    
+    cRVAL = header['CRVAL1']
+    cDELT = header['CDELT1']
+    x = np.arange(header['NAXIS1'])
+
+    return x*cDELT + cRVAL
+
+
+def read_fits_spectrum(spec_file_path, header):
+    """Reads in a spectrum from a fits file assuming that the wavelength dispersion 
+    solution and flux density units are stored in the header."""
+
+    spectrum = fits.getdata(spec_file_path)
+    err_spec = fits.getdata(spec_file_path, ext=2)
+
+    wavelengths = create_wavelength_array(header)
+
+    return wavelengths, spectrum, err_spec
+
+
+def wavelength_to_spectrum_index(wavelength, header):
+    """Given a wavelength selected by the user, this function outputs the corresponding 
+    index of the spectrum array."""
+
+    cRVAL = header['CRVAL1']
+    cDELT = header['CDELT1']
+
+    index = int((wavelength - cRVAL) / cDELT)
+
+    return index
+
+
+def get_spectrum_wavelength_range_indices(low_wavelength, high_wavelength, header):
+    """Selects the spectral data points that belong to the given wavelength range."""
+
+    low_index = wavelength_to_spectrum_index(low_wavelength, header)
+    high_index = wavelength_to_spectrum_index(high_wavelength, header)
+
+    return low_index, high_index
+
+
+def isolate_emission_line(low_wavelength, high_wavelength, spec_file_path):
+    """Given a spectrum file and a wavelength range, this function isolates the 
+    data belonging to the emission line of interest."""
+
+    header = fits.getheader(spec_file_path, ext=1)
+    wavelengths, spectrum, err_spec = read_fits_spectrum(spec_file_path, header)
+
+    low_index, high_index = get_spectrum_wavelength_range_indices(low_wavelength, high_wavelength, header)
+
+    isolated_wavelengths = wavelengths[low_index:high_index]
+    isolated_spectrum = spectrum[low_index:high_index]
+    isolated_err_spec = err_spec[low_index:high_index]
+
+    return isolated_wavelengths, isolated_spectrum, isolated_err_spec
+
+
+def fit_emission_line_to_gaussian(low_wavelength, high_wavelength, spec_file_path):
+    """Fits a spectrum to a Gaussian profile within a pre-defined wavelength range."""
+
+    wavelengths, spectrum, err_spec = isolate_emission_line(low_wavelength, high_wavelength, spec_file_path)
+
+    flux_guess = np.sum(spectrum) * (np.amax(wavelengths) - np.amin(wavelengths))
+    sig_guess = (np.amax(wavelengths) - np.amin(wavelengths))/2
+    mu_guess = (np.amax(wavelengths) + np.amin(wavelengths))/2
+    C_guess = max(0., np.amin(spectrum))
+    guess_list = [flux_guess, sig_guess, mu_guess, C_guess]
+
+    optimized_parameters, covariance_matrix = curve_fit(gaussian, wavelengths, spectrum, p0=guess_list, sigma=err_spec)
+
+    return optimized_parameters, covariance_matrix
+
+
+if __name__ == '__main__':
+    test_spectrum = '/Users/leonardoclarke/Research/CE_2021/all_1dspec/co2_deep.H.18812.ell.1d.fits'
+    test_range = np.array([17300, 17400])
+
+    params, covariance = fit_emission_line_to_gaussian(test_range[0], test_range[1], test_spectrum)
+    wavelengths, spectrum, err_spec = isolate_emission_line(test_range[0], test_range[1], test_spectrum)
+
+    plt.step(wavelengths, spectrum, where='mid')
+    plt.plot(wavelengths, gaussian(wavelengths, params))
+    plt.show()
