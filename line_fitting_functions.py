@@ -2,14 +2,22 @@ import numpy as np
 from astropy.io import fits
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+import pandas as pd
 
 def gaussian(x, *params):
     """1D Gaussian profile for a spectral emission/absorption line.
     
-    flux = The integrated flux of the spectral line.
-    sig = The width of the line in wavelength units.
-    mu = The wavelength of the line centroid.
-    C = The continuum level around the line. """
+    Args:
+        x (float or array): An array of wavelengths.
+        flux (float): The integrated flux of the spectral line.
+        sig (float): The width of the line in wavelength units.
+        mu (float): The wavelength of the line centroid.
+        C (float): The continuum level around the line. 
+        
+    Returns:
+        A numpy array containing the value of the best-fit gaussian function at each
+          value of x.
+    """
 
     if len(params) == 1:
         params = params[0]
@@ -62,8 +70,24 @@ def get_spectrum_wavelength_range_indices(low_wavelength, high_wavelength, heade
 
 
 def isolate_emission_line(low_wavelength, high_wavelength, spec_file_path):
-    """Given a spectrum file and a wavelength range, this function isolates the 
-    data belonging to the emission line of interest."""
+    """Isolates the data belonging to the emission line of interest.
+    
+    Args:
+        low_wavelength (float): The wavelength of the lower bound of the region over which the
+          emission line is fit.
+        high_wavelength (float): The wavelength of the upper bound of the region over which the
+          emission line is fit.
+        spec_file_path (string): The name of the path to the file containing the spectrum. Should
+          be a FITS file.
+          
+    Returns:
+        isolated_wavelengths (array): A numpy array of the wavelengths corresponding to the
+          spectral feature that has been isolated.
+        isolated_spectrum (array): A numpy array of the flux values corresponding to the
+          spectral feature that has been isolated.
+        isolated_err_spec (array): A numpy array of the error spectrum corresponding to the
+          spectral feature that has been isolated.
+    """
 
     header = fits.getheader(spec_file_path, ext=1)
     wavelengths, spectrum, err_spec = read_fits_spectrum(spec_file_path, header)
@@ -78,7 +102,24 @@ def isolate_emission_line(low_wavelength, high_wavelength, spec_file_path):
 
 
 def fit_emission_line_to_gaussian(low_wavelength, high_wavelength, spec_file_path):
-    """Fits a spectrum to a Gaussian profile within a pre-defined wavelength range."""
+    """Fits a spectrum to a Gaussian profile within a pre-defined wavelength range.
+    
+    Args:
+        low_wavelength (float): The wavelength of the lower bound of the region over which the
+          emission line is fit.
+        high_wavelength (float): The wavelength of the upper bound of the region over which the
+          emission line is fit.
+        spec_file_path (string): The name of the path to the file containing the spectrum. Should
+          be a FITS file.
+
+    Returns:
+        optimized_parameters (array):
+            A 1D numpy array containing the optimized gaussian parameters
+            in the following order: [line flux, line width (sigma), line centroid, continuum level flux]
+        covariance_matrix (array):
+            A 2D numpy array containing the covariance matrix describing the
+            fit of the data to the gaussian model.
+    """
 
     wavelengths, spectrum, err_spec = isolate_emission_line(low_wavelength, high_wavelength, spec_file_path)
 
@@ -91,6 +132,12 @@ def fit_emission_line_to_gaussian(low_wavelength, high_wavelength, spec_file_pat
     optimized_parameters, covariance_matrix = curve_fit(gaussian, wavelengths, spectrum, p0=guess_list, sigma=err_spec)
 
     return optimized_parameters, covariance_matrix
+
+
+def convert_data_to_pandas(low_wavelength, high_wavelength, spec_file_path):
+    isolated_wavelengths, isolated_spectrum, isolated_err_spec = isolate_emission_line(low_wavelength, high_wavelength, spec_file_path)
+    df_dictionary = {'wavelength':isolated_wavelengths, 'flux':isolated_spectrum, 'error':isolated_err_spec}
+    return pd.DataFrame(df_dictionary)
 
 
 if __name__ == '__main__':
