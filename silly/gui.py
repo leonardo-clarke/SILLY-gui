@@ -10,6 +10,7 @@ from PyQt6.QtGui import QAction, QIcon
 
 import matplotlib
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
 matplotlib.use('QtAgg')
@@ -58,10 +59,12 @@ class ApplicationWindow(QMainWindow):
         
         self.filename = ''
         self.df = pd.DataFrame()
-        self.wave_range = []
+        self.x0 = None
+        self.x1 = None
         
         self.canv = mplCanvas()
         layout.addWidget(self.canv)
+        layout.addWidget(NavigationToolbar(self.canv, self))
 
         self.add_toolbar()
 
@@ -83,14 +86,31 @@ class ApplicationWindow(QMainWindow):
         toolbar.addAction(upload_file)
 
         toggle_drag = QAction('toggle', self)
+        self.toggled = False
         toggle_drag.triggered.connect(self.selectrange)
         toolbar.addAction(toggle_drag)
 
 
     def selectrange(self):
         
-        return
+        self.canv.mpl_connect('button_press_event', self.on_press)
+        self.canv.mpl_connect('button_release_event', self.on_release)
+        self.update_for_fit()
 
+
+    def on_press(self, event):
+        print('press')
+        self.x0 = event.xdata
+        print(self.x0)
+
+    def on_release(self, event):
+        print('release')
+        self.x1 = event.xdata
+        print(self.x1)
+        #self.rect.set_width(self.x1 - self.x0)
+        #self.rect.set_height(self.y1 - self.y0)
+        #self.rect.set_xy((self.x0, self.y0))
+        #self.canv.axes.figure.canvas.draw()
 
     def getfile(self):
         
@@ -133,7 +153,11 @@ class ApplicationWindow(QMainWindow):
         self.canv.axes.cla()
         self.df.plot(x = self.df.columns[1], y = self.df.columns[2], ax = self.canv.axes)
         self.canv.draw()
-        #sc.axes.plot([0,1,2,3,4], [10,1,20,3,40])
+    
+    def update_for_fit(self):
+
+        self.canv.axes.cla()
+        
 
 if (__name__ == '__main__'):
     application = QApplication([])
