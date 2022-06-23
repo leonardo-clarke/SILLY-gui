@@ -12,6 +12,10 @@ import matplotlib
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
+from astropy.io import fits
+
+import line_fitting_functions
+
 matplotlib.use('QtAgg')
 
 class mplCanvas(FigureCanvasQTAgg):
@@ -102,7 +106,7 @@ class ApplicationWindow(QMainWindow):
 
         """
 
-        self.filename = QFileDialog.getOpenFileName(filter = "csv (*.csv)")[0]
+        self.filename = QFileDialog.getOpenFileName(filter = "CSV (*.csv);; FITS (*.fits)")[0]
         print('File :', self.filename)
         self.getdata()
         
@@ -116,10 +120,17 @@ class ApplicationWindow(QMainWindow):
 
         """
 
-        self.df = pd.read_csv(self.filename, header=0)
-        print(self.df)
-        self.update() 
-    
+        if self.filename[-4:] == '.csv':
+            self.df = pd.read_csv(self.filename, header=0)
+            print(self.df)
+            self.update()
+        elif self.filename[-5:] == '.fits':
+            wavelengths, spectrum, err_spec = line_fitting_functions.read_fits_spectrum(self.filename, fits.getheader(self.filename, ext=1))
+            df_dictionary = {'':np.arange(len(wavelengths)), 'wavelength':wavelengths, 'flux':spectrum, 'error':err_spec}
+            self.df = pd.DataFrame(df_dictionary)
+            print(self.df)
+            self.update()
+
     def update(self):
 
         """ method to update plot based on user selected file
@@ -131,6 +142,7 @@ class ApplicationWindow(QMainWindow):
         """
         
         self.canv.axes.cla()
+        self.canv.axes.set_ylabel('flux density')
         self.df.plot(x = self.df.columns[1], y = self.df.columns[2], ax = self.canv.axes)
         self.canv.draw()
         #sc.axes.plot([0,1,2,3,4], [10,1,20,3,40])

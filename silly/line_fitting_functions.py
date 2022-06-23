@@ -134,12 +134,6 @@ def fit_emission_line_to_gaussian(low_wavelength, high_wavelength, spec_file_pat
     return optimized_parameters, covariance_matrix
 
 
-def convert_data_to_pandas(low_wavelength, high_wavelength, spec_file_path):
-    isolated_wavelengths, isolated_spectrum, isolated_err_spec = isolate_emission_line(low_wavelength, high_wavelength, spec_file_path)
-    df_dictionary = {'wavelength':isolated_wavelengths, 'flux':isolated_spectrum, 'error':isolated_err_spec}
-    return pd.DataFrame(df_dictionary)
-
-
 if __name__ == '__main__':
     test_spectrum = '/Users/leonardoclarke/Research/CE_2021/all_1dspec/co2_deep.H.18812.ell.1d.fits'
     test_range = np.array([17300, 17400])
