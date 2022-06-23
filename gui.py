@@ -23,16 +23,36 @@ class mplCanvas(FigureCanvasQTAgg):
         super(mplCanvas, self).__init__(fig)
 
 class ApplicationWindow(QMainWindow):
+
+    """ Handles main GUI window and inherits from PyQt6.QtQidgets.QMainWindow
+
+    Attributes
+    ----------
+    setLayout : QVBoxLayout object
+        initalize layout of GUI.
+    setCentralWidget : QWidget object
+        initalize widget object.
+    setGeometry: inherited from QMainWindow
+        set size of GUI window
+    setWindowTile: inherited from QMainWindow
+        set name of GUI window
+    
+    filename: str
+        user inputted file, default is empty string
+    df: pandas DataFrame
+        data from user inputed file, default is empty dataframe
+    wave_range: list
+        user selected wavelength range, default is empty list
+    """
     
     def __init__(self):
 
         super().__init__()
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout() 
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
-
         self.setWindowTitle('silly-GUI')
         self.setGeometry(200, 200, 350, 350)
         
@@ -46,6 +66,14 @@ class ApplicationWindow(QMainWindow):
         self.add_toolbar()
 
     def add_toolbar(self):
+
+        """ method to add a toolbar 
+
+        Returns
+        -------
+        adds functional toolbar with toggle drag and add file feature
+
+        """
 
         toolbar = QToolBar()
         self.addToolBar(toolbar)
@@ -65,6 +93,14 @@ class ApplicationWindow(QMainWindow):
 
 
     def getfile(self):
+        
+        """ method to open file
+
+        Returns
+        -------
+        updates self.filename
+
+        """
 
         self.filename = QFileDialog.getOpenFileName(filter = "csv (*.csv)")[0]
         print('File :', self.filename)
@@ -72,11 +108,27 @@ class ApplicationWindow(QMainWindow):
         
     def getdata(self):
 
+        """ method to read file data
+
+        Returns
+        -------
+        updates self.df to add data according to what's in self.filename
+
+        """
+
         self.df = pd.read_csv(self.filename, header=0)
         print(self.df)
         self.update() 
     
     def update(self):
+
+        """ method to update plot based on user selected file
+
+        Returns
+        -------
+        updates canvas with new data
+
+        """
         
         self.canv.axes.cla()
         self.df.plot(x = self.df.columns[1], y = self.df.columns[2], ax = self.canv.axes)
