@@ -111,10 +111,6 @@ class ApplicationWindow(QMainWindow):
         print('release')
         self.x1 = event.xdata
         print(self.x1)
-        #self.rect.set_width(self.x1 - self.x0)
-        #self.rect.set_height(self.y1 - self.y0)
-        #self.rect.set_xy((self.x0, self.y0))
-        #self.canv.axes.figure.canvas.draw()
 
     def getfile(self):
         
@@ -169,7 +165,7 @@ class ApplicationWindow(QMainWindow):
     def update_for_fit(self):
 
         self.canv.axes.cla()
-        
+
 
 if (__name__ == '__main__'):
     application = QApplication([])
