@@ -127,6 +127,7 @@ class ApplicationWindow(QMainWindow):
         self.release = True
         
         if self.release == True:
+            
             self.canv.mpl_disconnect(self.cid_press)
             self.canv.mpl_disconnect(self.cid_release)
 
@@ -155,11 +156,13 @@ class ApplicationWindow(QMainWindow):
         """
 
         if self.filename[-4:] == '.csv':
+
             self.df = pd.read_csv(self.filename, header=0)
             print(self.df)
             self.update()
 
         elif self.filename[-5:] == '.fits':
+
             wavelengths, spectrum, err_spec = lff.read_fits_spectrum(self.filename, fits.getheader(self.filename, ext=1))
             df_dictionary = {'':np.arange(len(wavelengths)), 'wavelength':wavelengths, 'flux':spectrum, 'error':err_spec}
             self.df = pd.DataFrame(df_dictionary)
@@ -179,18 +182,25 @@ class ApplicationWindow(QMainWindow):
         self.canv.axes.cla()
         self.canv.axes.set_ylabel('flux density')
         self.df.plot(x = self.df.columns[1], y = self.df.columns[2], ax = self.canv.axes)
+
         if previous_ax_limits == True:
-            print(xlim, ylim)
+
             self.canv.axes.set_xlim(xlim); self.canv.axes.set_ylim(ylim)
+
         self.canv.draw()
     
     def update_for_fit(self):
+
         print(self.x0)
         print(self.x1)
+
         if self.x0 == None:
+
             print('no values selected!')
             self.output_text.append('no values selected!')
+
         else:
+
             print('wow!')
             self.fit_number += 1
             params, covariance, wavelengths, spectrum = lff.fit_emission_line_to_gaussian(self.x0, self.x1, self.filename)
@@ -200,11 +210,13 @@ class ApplicationWindow(QMainWindow):
             self.update_fit_list(params, covariance)
 
     def clear_line_fits(self):
+
         self.update(previous_ax_limits=True)
         self.fit_number = 0
         self.output_text.clear()
 
     def update_fit_list(self, params, covariance):
+
         self.output_text.append('- fit {0}: flux:{1}, sig:{2}, mu:{3}, c:{4}'.format(self.fit_number,
                                                             params[0],
                                                             params[1],
@@ -213,7 +225,7 @@ class ApplicationWindow(QMainWindow):
         self.output_text.append('- fit {0}: xmin: {1}, xmax: {2}'.format(self.fit_number, 
                                                             self.x0,
                                                             self.x1))
-        self.output_text.append('******************')
+        self.output_text.append('*-*-*-*-*-*-*-*-*-*')
 
 if (__name__ == '__main__'):
     application = QApplication([])
