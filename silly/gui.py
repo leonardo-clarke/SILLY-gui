@@ -90,9 +90,10 @@ class ApplicationWindow(QMainWindow):
         upload_file.clicked[bool].connect(self.getfile)
         toolbar.addWidget(upload_file)
 
-        button = QPushButton('select region', self)
-        toolbar.addWidget(button)
-        button.clicked[bool].connect(self.selectrange)
+        self.button = QPushButton('select region', self)
+        self.button.setCheckable(True)
+        toolbar.addWidget(self.button)
+        self.button.clicked[bool].connect(self.selectrange)
 
         fit = QPushButton('fit', self)
         toolbar.addWidget(fit)
@@ -122,6 +123,9 @@ class ApplicationWindow(QMainWindow):
         if self.release == True:
             self.canv.mpl_disconnect(self.cid_press)
             self.canv.mpl_disconnect(self.cid_release)
+
+        self.button.setChecked(False)
+        
 
     def getfile(self):
         
