@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import numpy
 
 setup(
-    name='silly',
+    name='SILLY-gui',
     version='1.0.0',
     include_package_data = True,
     include_dirs=[numpy.get_include()],

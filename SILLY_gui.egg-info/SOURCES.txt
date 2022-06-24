@@ -1,0 +1,11 @@
+README.md
+setup.py
+SILLY_gui.egg-info/PKG-INFO
+SILLY_gui.egg-info/SOURCES.txt
+SILLY_gui.egg-info/dependency_links.txt
+SILLY_gui.egg-info/top_level.txt
+silly/__init__.py
+silly/gui.py
+silly/gui_backup.py
+silly/line_fitting_functions.py
+silly/toy_data.py
