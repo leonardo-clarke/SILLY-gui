@@ -179,7 +179,6 @@ class ApplicationWindow(QMainWindow):
     
             params, covariance = lff.fit_emission_line_to_gaussian(self.x0, self.x1, self.filename)
             wavelengths, spectrum, err_spec = lff.isolate_emission_line(self.x0, self.x1, self.filename)
-            self.canv.axes.plot(wavelengths, 1, where='mid')
             self.canv.axes.plot(wavelengths, lff.gaussian(wavelengths, params))
 
             self.canv.draw()

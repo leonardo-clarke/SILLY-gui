@@ -23,7 +23,7 @@ def gaussian(x, *params):
         params = params[0]
     flux, sig, mu, C = params
 
-    return flux * (1/np.sqrt(2*np.pi*sig**2)) * np.exp(-0.5 * ((x-mu)/sig)**2 )
+    return flux * (1/np.sqrt(2*np.pi*sig**2)) * np.exp(-0.5 * ((x-mu)/sig)**2 ) + C
 
 
 def create_wavelength_array(header):
