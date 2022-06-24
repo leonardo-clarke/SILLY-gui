@@ -59,7 +59,7 @@ class ApplicationWindow(QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
         self.setWindowTitle('silly-GUI')
-        self.setGeometry(200, 200, 350, 350)
+        self.setGeometry(200, 200, 1250, 650)
         
         self.filename = ''
         self.df = pd.DataFrame()
@@ -97,6 +97,10 @@ class ApplicationWindow(QMainWindow):
         fit = QPushButton('fit', self)
         toolbar.addWidget(fit)
         fit.clicked[bool].connect(self.update_for_fit)
+
+        fit = QPushButton('clear line fits', self)
+        toolbar.addWidget(fit)
+        fit.clicked[bool].connect(self.clear_line_fits)
 
     def selectrange(self):
     
@@ -154,7 +158,7 @@ class ApplicationWindow(QMainWindow):
             self.df = pd.DataFrame(df_dictionary)
             self.update()
 
-    def update(self):
+    def update(self, previous_ax_limits=False):
 
         """ method to update plot based on user selected file
 
@@ -163,10 +167,14 @@ class ApplicationWindow(QMainWindow):
         updates canvas with new data
 
         """
+        xlim = self.canv.axes.get_xlim(); ylim = self.canv.axes.get_ylim()
         
         self.canv.axes.cla()
         self.canv.axes.set_ylabel('flux density')
         self.df.plot(x = self.df.columns[1], y = self.df.columns[2], ax = self.canv.axes)
+        if previous_ax_limits == True:
+            print(xlim, ylim)
+            self.canv.axes.set_xlim(xlim); self.canv.axes.set_ylim(ylim)
         self.canv.draw()
     
     def update_for_fit(self):
@@ -182,6 +190,10 @@ class ApplicationWindow(QMainWindow):
             self.canv.axes.plot(wavelengths, lff.gaussian(wavelengths, params))
 
             self.canv.draw()
+
+    def clear_line_fits(self):
+        self.update(previous_ax_limits=True)
+
 
 
 if (__name__ == '__main__'):
