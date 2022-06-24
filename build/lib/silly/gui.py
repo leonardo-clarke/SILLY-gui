@@ -57,7 +57,7 @@ class ApplicationWindow(QMainWindow):
         layout = QGridLayout()
         
         self.filename = ''
-        self.df = pd.DataFrame()
+        self.df = None
         self.x0 = None
         self.x1 = None
         self.release = False
@@ -65,7 +65,8 @@ class ApplicationWindow(QMainWindow):
 
         self.canv = mplCanvas()
         layout.addWidget(self.canv, 0, 0)
-        layout.addWidget(NavigationToolbar(self.canv, self), 1, 0)
+        nav = NavigationToolbar(self.canv, self)
+        layout.addWidget(nav, 1, 0)
 
         self.output_text = QTextEdit()
         layout.addWidget(self.output_text, 0, 1)
@@ -111,7 +112,7 @@ class ApplicationWindow(QMainWindow):
         fit.clicked[bool].connect(self.clear_line_fits)
 
     def selectrange(self):
-    
+
         self.cid_press = self.canv.mpl_connect('button_press_event', self.on_press)
         self.cid_release = self.canv.mpl_connect('button_release_event', self.on_release)
 
@@ -133,6 +134,7 @@ class ApplicationWindow(QMainWindow):
             self.canv.mpl_disconnect(self.cid_release)
 
         self.button.setChecked(False)
+    
     def getfile(self):
         
         """ method to open file
@@ -143,7 +145,7 @@ class ApplicationWindow(QMainWindow):
 
         """
 
-        self.filename = QFileDialog.getOpenFileName(filter = "CSV (*.csv);; FITS (*.fits)")[0]
+        self.filename = QFileDialog.getOpenFileName(filter = "FITS (*.fits)")[0]
         print('File :', self.filename)
         self.getdata()
         
@@ -198,12 +200,10 @@ class ApplicationWindow(QMainWindow):
 
         if self.x0 == None:
 
-            print('no values selected!')
             self.output_text.append('no values selected!')
 
         else:
 
-            print('wow!')
             self.fit_number += 1
             params, covariance, wavelengths, spectrum = lff.fit_emission_line_to_gaussian(self.x0, self.x1, self.filename)
             self.canv.axes.plot(wavelengths, lff.gaussian(wavelengths, params), label='fit {}'.format(self.fit_number))
@@ -212,10 +212,16 @@ class ApplicationWindow(QMainWindow):
             self.update_fit_list(params, covariance)
 
     def clear_line_fits(self):
+        
+        if self.df == None:
 
-        self.update(previous_ax_limits=True)
-        self.fit_number = 0
-        self.output_text.clear()
+            self.output_text.append('nothing to clear!')
+
+        else:
+            
+            self.update(previous_ax_limits=True)
+            self.fit_number = 0
+            self.output_text.clear()
 
     def update_fit_list(self, params, covariance):
 
