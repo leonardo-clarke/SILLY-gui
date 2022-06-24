@@ -104,20 +104,20 @@ class ApplicationWindow(QMainWindow):
         self.cid_release = self.canv.mpl_connect('button_release_event', self.on_release)
 
     def on_press(self, event):
-        print(self.x1)
+
         print('press')
         self.x0 = event.xdata
         print(self.x0)
 
     def on_release(self, event):
+
         print('release')
         self.x1 = event.xdata
-        print(self.x1)
         self.release = True
+        
         if self.release == True:
             self.canv.mpl_disconnect(self.cid_press)
             self.canv.mpl_disconnect(self.cid_release)
-            print(self.x1)
 
     def getfile(self):
         
@@ -149,7 +149,7 @@ class ApplicationWindow(QMainWindow):
             self.update()
 
         elif self.filename[-5:] == '.fits':
-            wavelengths, spectrum, err_spec = line_fitting_functions.read_fits_spectrum(self.filename, fits.getheader(self.filename, ext=1))
+            wavelengths, spectrum, err_spec = lff.read_fits_spectrum(self.filename, fits.getheader(self.filename, ext=1))
             df_dictionary = {'':np.arange(len(wavelengths)), 'wavelength':wavelengths, 'flux':spectrum, 'error':err_spec}
             self.df = pd.DataFrame(df_dictionary)
             self.update()
@@ -166,19 +166,22 @@ class ApplicationWindow(QMainWindow):
         
         self.canv.axes.cla()
         self.canv.axes.set_ylabel('flux density')
-        print(self.df.columns[1])
         self.df.plot(x = self.df.columns[1], y = self.df.columns[2], ax = self.canv.axes)
-        print(self.df.columns)
         self.canv.draw()
     
     def update_for_fit(self):
         print(self.x0)
+        print(self.x1)
         if self.x0 == None:
             print('no values selected!')
         else:
             print('wow!')
-            self.canv.axes.clear()
-           
+    
+            params, covariance = lff.fit_emission_line_to_gaussian(self.x0, self.x1, self.filename)
+            wavelengths, spectrum, err_spec = lff.isolate_emission_line(self.x0, self.x1, self.filename)
+            self.canv.axes.plot(wavelengths, 1, where='mid')
+            self.canv.axes.plot(wavelengths, lff.gaussian(wavelengths, params))
+
             self.canv.draw()
 
 
