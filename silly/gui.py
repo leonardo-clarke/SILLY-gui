@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QToolBar, QFileDialog
+from PyQt6.QtWidgets import QApplication, QLabel, QTextEdit, QMainWindow, QPushButton, QGridLayout, QWidget, QToolBar, QFileDialog
 from PyQt6.QtGui import QAction, QIcon
 
 import matplotlib
@@ -54,24 +54,32 @@ class ApplicationWindow(QMainWindow):
 
         super().__init__()
 
-        layout = QVBoxLayout() 
-        widget = QWidget()
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
-        self.setWindowTitle('silly-GUI')
-        self.setGeometry(200, 200, 1250, 650)
+        layout = QGridLayout()
         
         self.filename = ''
         self.df = pd.DataFrame()
         self.x0 = None
         self.x1 = None
         self.release = False
+        self.fit_number = 0
 
         self.canv = mplCanvas()
-        layout.addWidget(self.canv)
-        layout.addWidget(NavigationToolbar(self.canv, self))
+        layout.addWidget(self.canv, 0, 0)
+        layout.addWidget(NavigationToolbar(self.canv, self), 1, 0)
+
+        self.output_text = QTextEdit()
+        layout.addWidget(self.output_text, 0, 1)
+        #label = QLabel('current fits', layout)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+
+        self.setCentralWidget(widget)
+        self.setWindowTitle('silly-GUI')
+        self.setGeometry(200, 200, 350, 350)
 
         self.add_toolbar()
+
 
     def add_toolbar(self):
 
@@ -184,17 +192,21 @@ class ApplicationWindow(QMainWindow):
             print('no values selected!')
         else:
             print('wow!')
-    
+            self.fit_number += 1
             params, covariance = lff.fit_emission_line_to_gaussian(self.x0, self.x1, self.filename)
             wavelengths, spectrum, err_spec = lff.isolate_emission_line(self.x0, self.x1, self.filename)
-            self.canv.axes.plot(wavelengths, lff.gaussian(wavelengths, params))
-
+            self.canv.axes.plot(wavelengths, lff.gaussian(wavelengths, params), label='fit {}'.format(self.fit_number))
+            self.canv.axes.legend()
             self.canv.draw()
+            self.update_fit_list(params, covariance)
 
     def clear_line_fits(self):
         self.update(previous_ax_limits=True)
+        self.fit_number = 0
+        self.output_text.clear()
 
-
+    def update_fit_list(self, params, covariance):
+        self.output_text.append('- fit {0}: {1}'.format(self.fit_number, params))
 
 if (__name__ == '__main__'):
     application = QApplication([])
