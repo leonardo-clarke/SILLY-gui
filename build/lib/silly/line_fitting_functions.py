@@ -126,7 +126,12 @@ def fit_emission_line_to_gaussian(low_wavelength, high_wavelength, spec_file_pat
     C_guess = max(1e-18, np.amin(spectrum))
     guess_list = [flux_guess, sig_guess, mu_guess, C_guess]
 
-    optimized_parameters, covariance_matrix = curve_fit(gaussian, wavelengths, spectrum, p0=guess_list, sigma=err_spec, maxfev=2000)
+    try:
+      optimized_parameters, covariance_matrix = curve_fit(gaussian, wavelengths, spectrum, p0=guess_list, sigma=err_spec, maxfev=2000)
+    except RuntimeError:
+      print('Runtime exceeded: No fit produced.')
+      optimized_parameters = np.array([0, 1, 0, 0])
+      covariance_matrix = np.ones(4,4)
     print('optimized parameters are', optimized_parameters)
     return optimized_parameters, covariance_matrix, wavelengths, spectrum
 
