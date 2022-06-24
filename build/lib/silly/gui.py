@@ -15,7 +15,7 @@ from matplotlib.figure import Figure
 
 from astropy.io import fits
 
-import line_fitting_functions as lff
+from silly import line_fitting_functions as lff
 
 matplotlib.use('QtAgg')
 
@@ -235,8 +235,13 @@ class ApplicationWindow(QMainWindow):
                                                             self.x1))
         self.output_text.append('*-*-*-*-*-*-*-*-*-*')
 
-if (__name__ == '__main__'):
-    application = QApplication([])
-    mainWindow = ApplicationWindow()
-    mainWindow.show()
-    application.exec()
+
+application = QApplication([])
+mainWindow = ApplicationWindow()
+mainWindow.show()
+application.exec()
+# if (__name__ == '__main__'):
+#     application = QApplication([])
+#     mainWindow = ApplicationWindow()
+#     mainWindow.show()
+#     application.exec()
