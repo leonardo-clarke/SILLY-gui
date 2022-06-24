@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtWidgets import QApplication, QLabel, QTextEdit, QMainWindow, QPushButton, QGridLayout, QWidget, QToolBar, QFileDialog
+from PyQt6.QtWidgets import QApplication, QTextEdit, QMainWindow, QPushButton, QGridLayout, QWidget, QToolBar, QFileDialog
 from PyQt6.QtGui import QAction, QIcon
 
 import matplotlib
