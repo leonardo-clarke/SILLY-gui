@@ -97,10 +97,10 @@ class ApplicationWindow(QMainWindow):
         upload_file.clicked[bool].connect(self.getfile)
         toolbar.addWidget(upload_file)
 
-        button = QPushButton('select region', self)
+        self.button = QPushButton('select region', self)
         self.button.setCheckable(True)
-        toolbar.addWidget(button)
-        button.clicked[bool].connect(self.selectrange)
+        toolbar.addWidget(self.button)
+        self.button.clicked[bool].connect(self.selectrange)
 
         fit = QPushButton('fit', self)
         toolbar.addWidget(fit)
