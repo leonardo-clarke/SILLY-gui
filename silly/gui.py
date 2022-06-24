@@ -75,7 +75,7 @@ class ApplicationWindow(QMainWindow):
 
         self.setCentralWidget(widget)
         self.setWindowTitle('silly-GUI')
-        self.setGeometry(200, 200, 350, 350)
+        self.setGeometry(200, 200, 1250, 650)
 
         self.add_toolbar()
 
