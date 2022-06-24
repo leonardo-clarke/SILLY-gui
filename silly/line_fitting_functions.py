@@ -25,7 +25,6 @@ def gaussian(x, *params):
 
     return flux * (1/np.sqrt(2*np.pi*sig**2)) * np.exp(-0.5 * ((x-mu)/sig)**2 ) + C
 
-
 def create_wavelength_array(header):
     """Creates a wavelength array for a spectrum (data) assuming that data is a 1D array."""
     
@@ -34,7 +33,6 @@ def create_wavelength_array(header):
     x = np.arange(header['NAXIS1'])
 
     return x*cDELT + cRVAL
-
 
 def read_fits_spectrum(spec_file_path, header):
     """Reads in a spectrum from a fits file assuming that the wavelength dispersion 
@@ -122,25 +120,24 @@ def fit_emission_line_to_gaussian(low_wavelength, high_wavelength, spec_file_pat
     """
 
     wavelengths, spectrum, err_spec = isolate_emission_line(low_wavelength, high_wavelength, spec_file_path)
-
     flux_guess = np.sum(spectrum) * (np.amax(wavelengths) - np.amin(wavelengths))
     sig_guess = (np.amax(wavelengths) - np.amin(wavelengths))/2
     mu_guess = (np.amax(wavelengths) + np.amin(wavelengths))/2
-    C_guess = max(0., np.amin(spectrum))
+    C_guess = max(1e-18, np.amin(spectrum))
     guess_list = [flux_guess, sig_guess, mu_guess, C_guess]
 
-    optimized_parameters, covariance_matrix = curve_fit(gaussian, wavelengths, spectrum, p0=guess_list, sigma=err_spec)
+    optimized_parameters, covariance_matrix = curve_fit(gaussian, wavelengths, spectrum, p0=guess_list, sigma=err_spec, maxfev=2000)
+    print('optimized parameters are', optimized_parameters)
+    return optimized_parameters, covariance_matrix, wavelengths, spectrum
 
-    return optimized_parameters, covariance_matrix
 
+#if __name__ == '__main__':
+    # test_spectrum = '/Users/leonardoclarke/Research/CE_2021/all_1dspec/co2_deep.H.18812.ell.1d.fits'
+    #test_range = np.array([17300, 17400])
 
-if __name__ == '__main__':
-    test_spectrum = '/Users/leonardoclarke/Research/CE_2021/all_1dspec/co2_deep.H.18812.ell.1d.fits'
-    test_range = np.array([17300, 17400])
+    # params, covariance = fit_emission_line_to_gaussian(test_range[0], test_range[1], test_spectrum)
+    # wavelengths, spectrum, err_spec = isolate_emission_line(test_range[0], test_range[1], test_spectrum)
 
-    params, covariance = fit_emission_line_to_gaussian(test_range[0], test_range[1], test_spectrum)
-    wavelengths, spectrum, err_spec = isolate_emission_line(test_range[0], test_range[1], test_spectrum)
-
-    plt.step(wavelengths, spectrum, where='mid')
-    plt.plot(wavelengths, gaussian(wavelengths, params))
-    plt.show()
+    # plt.step(wavelengths, spectrum, where='mid')
+    # plt.plot(wavelengths, gaussian(wavelengths, params))
+    # plt.show()

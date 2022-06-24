@@ -69,7 +69,6 @@ class ApplicationWindow(QMainWindow):
 
         self.output_text = QTextEdit()
         layout.addWidget(self.output_text, 0, 1)
-        #label = QLabel('current fits', layout)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -190,11 +189,11 @@ class ApplicationWindow(QMainWindow):
         print(self.x1)
         if self.x0 == None:
             print('no values selected!')
+            self.output_text.append('no values selected!')
         else:
             print('wow!')
             self.fit_number += 1
-            params, covariance = lff.fit_emission_line_to_gaussian(self.x0, self.x1, self.filename)
-            wavelengths, spectrum, err_spec = lff.isolate_emission_line(self.x0, self.x1, self.filename)
+            params, covariance, wavelengths, spectrum = lff.fit_emission_line_to_gaussian(self.x0, self.x1, self.filename)
             self.canv.axes.plot(wavelengths, lff.gaussian(wavelengths, params), label='fit {}'.format(self.fit_number))
             self.canv.axes.legend()
             self.canv.draw()
@@ -206,7 +205,15 @@ class ApplicationWindow(QMainWindow):
         self.output_text.clear()
 
     def update_fit_list(self, params, covariance):
-        self.output_text.append('- fit {0}: {1}'.format(self.fit_number, params))
+        self.output_text.append('- fit {0}: flux:{1}, sig:{2}, mu:{3}, c:{4}'.format(self.fit_number,
+                                                            params[0],
+                                                            params[1],
+                                                            params[2],
+                                                            params[3]))
+        self.output_text.append('- fit {0}: xmin: {1}, xmax: {2}'.format(self.fit_number, 
+                                                            self.x0,
+                                                            self.x1))
+        self.output_text.append('******************')
 
 if (__name__ == '__main__'):
     application = QApplication([])
