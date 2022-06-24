@@ -57,7 +57,7 @@ class ApplicationWindow(QMainWindow):
         layout = QGridLayout()
         
         self.filename = ''
-        self.df = None
+        self.df = pd.DataFrame()
         self.x0 = None
         self.x1 = None
         self.release = False
@@ -129,9 +129,11 @@ class ApplicationWindow(QMainWindow):
         self.release = True
         
         if self.release == True:
-
+            
             self.canv.mpl_disconnect(self.cid_press)
             self.canv.mpl_disconnect(self.cid_release)
+            self.output_text.append('current xmin: {}, current xmax: {}'.format(self.x0, self.x1))
+            self.output_text.append('*-*-*-*-*-*-*-*-*-*')
 
         self.button.setChecked(False)
     
@@ -144,10 +146,31 @@ class ApplicationWindow(QMainWindow):
         updates self.filename
 
         """
+        if self.filename == '':
+            
+            self.filename = QFileDialog.getOpenFileName(filter = "FITS (*.fits)")[0]
+            print('File :', self.filename)
+            self.output_text.append('File : {0}'.format(self.filename))
+            self.getdata()
 
-        self.filename = QFileDialog.getOpenFileName(filter = "FITS (*.fits)")[0]
-        print('File :', self.filename)
-        self.getdata()
+        else:
+
+            self.clear_self()
+            self.filename = QFileDialog.getOpenFileName(filter = "FITS (*.fits)")[0]
+            print('File :', self.filename)
+            self.output_text.append('File : {0}'.format(self.filename))
+            self.getdata()
+
+    def clear_self(self):
+
+        self.filename = ''
+        self.df = pd.DataFrame()
+        self.x0 = None
+        self.x1 = None
+        self.release = False
+        self.fit_number = 0
+        self.output_text.clear()
+            
         
     def getdata(self):
 
@@ -202,6 +225,10 @@ class ApplicationWindow(QMainWindow):
 
             self.output_text.append('no values selected!')
 
+        elif self.df.empty:
+
+            self.output_text.append('no data selected!')
+
         else:
 
             self.fit_number += 1
@@ -213,12 +240,12 @@ class ApplicationWindow(QMainWindow):
 
     def clear_line_fits(self):
         
-        if self.df == None:
+        if self.df.empty:
 
             self.output_text.append('nothing to clear!')
 
         else:
-            
+
             self.update(previous_ax_limits=True)
             self.fit_number = 0
             self.output_text.clear()
