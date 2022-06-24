@@ -15,7 +15,7 @@ from matplotlib.figure import Figure
 
 from astropy.io import fits
 
-import line_fitting_functions
+import line_fitting_functions as lff
 
 matplotlib.use('QtAgg')
 
@@ -65,7 +65,8 @@ class ApplicationWindow(QMainWindow):
         self.df = pd.DataFrame()
         self.x0 = None
         self.x1 = None
-        
+        self.release = False
+
         self.canv = mplCanvas()
         layout.addWidget(self.canv)
         layout.addWidget(NavigationToolbar(self.canv, self))
@@ -85,24 +86,25 @@ class ApplicationWindow(QMainWindow):
         toolbar = QToolBar()
         self.addToolBar(toolbar)
 
-        upload_file = QAction('upload file', self)
-        upload_file.triggered.connect(self.getfile)
-        toolbar.addAction(upload_file)
+        upload_file = QPushButton('upload file', self)
+        upload_file.clicked[bool].connect(self.getfile)
+        toolbar.addWidget(upload_file)
 
-        toggle_drag = QAction('toggle', self)
-        self.toggled = False
-        toggle_drag.triggered.connect(self.selectrange)
-        toolbar.addAction(toggle_drag)
+        button = QPushButton('select region', self)
+        toolbar.addWidget(button)
+        button.clicked[bool].connect(self.selectrange)
 
+        fit = QPushButton('fit', self)
+        toolbar.addWidget(fit)
+        fit.clicked[bool].connect(self.update_for_fit)
 
     def selectrange(self):
-        
-        self.canv.mpl_connect('button_press_event', self.on_press)
-        self.canv.mpl_connect('button_release_event', self.on_release)
-        self.update_for_fit()
-
+    
+        self.cid_press = self.canv.mpl_connect('button_press_event', self.on_press)
+        self.cid_release = self.canv.mpl_connect('button_release_event', self.on_release)
 
     def on_press(self, event):
+        print(self.x1)
         print('press')
         self.x0 = event.xdata
         print(self.x0)
@@ -111,6 +113,11 @@ class ApplicationWindow(QMainWindow):
         print('release')
         self.x1 = event.xdata
         print(self.x1)
+        self.release = True
+        if self.release == True:
+            self.canv.mpl_disconnect(self.cid_press)
+            self.canv.mpl_disconnect(self.cid_release)
+            print(self.x1)
 
     def getfile(self):
         
@@ -140,11 +147,11 @@ class ApplicationWindow(QMainWindow):
             self.df = pd.read_csv(self.filename, header=0)
             print(self.df)
             self.update()
+
         elif self.filename[-5:] == '.fits':
             wavelengths, spectrum, err_spec = line_fitting_functions.read_fits_spectrum(self.filename, fits.getheader(self.filename, ext=1))
             df_dictionary = {'':np.arange(len(wavelengths)), 'wavelength':wavelengths, 'flux':spectrum, 'error':err_spec}
             self.df = pd.DataFrame(df_dictionary)
-            print(self.df)
             self.update()
 
     def update(self):
@@ -159,12 +166,20 @@ class ApplicationWindow(QMainWindow):
         
         self.canv.axes.cla()
         self.canv.axes.set_ylabel('flux density')
+        print(self.df.columns[1])
         self.df.plot(x = self.df.columns[1], y = self.df.columns[2], ax = self.canv.axes)
+        print(self.df.columns)
         self.canv.draw()
     
     def update_for_fit(self):
-
-        self.canv.axes.cla()
+        print(self.x0)
+        if self.x0 == None:
+            print('no values selected!')
+        else:
+            print('wow!')
+            self.canv.axes.clear()
+           
+            self.canv.draw()
 
 
 if (__name__ == '__main__'):
